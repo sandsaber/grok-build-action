@@ -50,7 +50,7 @@ A composite GitHub Action that:
 4. GitHub identity is `GITHUB_TOKEN` by default.
 5. Do not open PRs automatically. Commit to `grok/...` and post a compare URL.
 6. English for all repo artifacts.
-7. MIT license stays as-is.
+7. MIT-0 (MIT No Attribution).
 8. Linux GitHub-hosted runners first.
 9. Pin the Grok CLI version (`curl -fsSL https://x.ai/cli/install.sh | bash -s <version>`).
 

@@ -56,3 +56,5 @@ grok_args: >
 ## Resume a session
 
 `session_id` is an action output. A later step can pass `grok_args: --resume ${{ steps.grok.outputs.session_id }}` — only useful in the same job, because session files live on that runner under `GROK_HOME`.
+
+See also [Setup](setup.md), [Configuration](configuration.md), and [Security](security.md).

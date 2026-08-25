@@ -39,3 +39,5 @@ Hooks or MCP servers defined only on the PR head are untrusted; do not rely on t
 ## Pinning the CLI
 
 `grok_version` defaults to `1.0.5` (`curl -fsSL https://x.ai/cli/install.sh | bash -s -- 1.0.5`). Bump it when you want a newer Grok Build. `path_to_grok_executable` skips install entirely (custom images, Nix, etc.).
+
+See also [Usage](usage.md) for `grok_args` and structured output.

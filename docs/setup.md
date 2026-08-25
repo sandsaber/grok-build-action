@@ -57,3 +57,7 @@ cat ~/.grok/auth.json
 ```
 
 Store that JSON as secret `GROK_AUTH_JSON` and pass `grok_auth_json: ${{ secrets.GROK_AUTH_JSON }}`. Prefer an API key when you can: session files expire.
+
+## License
+
+This project is [MIT-0](../LICENSE).
