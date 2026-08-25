@@ -1,0 +1,27 @@
+{
+  "name": "Grok Build Custom App",
+  "description": "Custom GitHub App for Grok Build Action",
+  "url": "https://github.com/sandsaber/grok-build-action",
+  "hook_attributes": {
+    "url": "https://example.com/github/webhook",
+    "active": false
+  },
+  "redirect_url": "https://github.com/settings/apps/new",
+  "callback_urls": [],
+  "setup_url": "https://github.com/sandsaber/grok-build-action/blob/main/docs/setup.md",
+  "public": false,
+  "default_permissions": {
+    "contents": "write",
+    "issues": "write",
+    "pull_requests": "write",
+    "actions": "read",
+    "metadata": "read"
+  },
+  "default_events": [
+    "issue_comment",
+    "issues",
+    "pull_request",
+    "pull_request_review",
+    "pull_request_review_comment"
+  ]
+}

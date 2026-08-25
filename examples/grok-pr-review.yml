@@ -1,0 +1,31 @@
+name: Grok PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+jobs:
+  review:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Review with Grok Build
+        uses: sandsaber/grok-build-action@main
+        with:
+          xai_api_key: ${{ secrets.XAI_API_KEY }}
+          prompt: |
+            Review this pull request for bugs, security issues, and missing tests.
+            Use inline comments for findings that map to a file and line.
+            If the change looks good, say so briefly on the tracking comment.
+          track_progress: "true"
+          grok_args: "--max-turns 20"

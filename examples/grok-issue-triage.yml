@@ -1,0 +1,28 @@
+name: Grok Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Triage with Grok Build
+        uses: sandsaber/grok-build-action@main
+        with:
+          xai_api_key: ${{ secrets.XAI_API_KEY }}
+          prompt: |
+            Read this new issue and:
+            1. Summarize it in two sentences
+            2. Suggest labels (do not apply them unless you are sure)
+            3. Ask for missing reproduction details if it looks like a bug
+          track_progress: "true"

@@ -1,0 +1,174 @@
+name: "Grok Build Action"
+description: "Run Grok Build on GitHub issues and pull requests. Auto-detects tag mode (@grok) or agent mode (prompt)."
+author: "sandsaber"
+branding:
+  icon: "zap"
+  color: "purple"
+
+inputs:
+  xai_api_key:
+    description: "xAI API key (XAI_API_KEY). Required unless grok_auth_json is set."
+    required: false
+    default: ""
+  grok_auth_json:
+    description: "Optional contents of ~/.grok/auth.json for SuperGrok session auth."
+    required: false
+    default: ""
+  github_token:
+    description: "GitHub token for API and git. Defaults to the workflow token."
+    required: false
+    default: ""
+  prompt:
+    description: "Instructions for Grok Build. When set, the action runs in agent mode."
+    required: false
+    default: ""
+  trigger_phrase:
+    description: "Phrase that triggers tag mode in comments, titles, and bodies."
+    required: false
+    default: "@grok"
+  assignee_trigger:
+    description: "Assignee username that triggers the action on issues (e.g. grok)."
+    required: false
+    default: ""
+  label_trigger:
+    description: "Label that triggers the action when applied to an issue."
+    required: false
+    default: "grok"
+  grok_args:
+    description: "Extra arguments passed to the grok CLI (e.g. --model grok-build --max-turns 20)."
+    required: false
+    default: ""
+  base_branch:
+    description: "Base branch for new grok/ branches. Defaults to the repository default branch."
+    required: false
+    default: ""
+  branch_prefix:
+    description: "Prefix for branches created in tag mode."
+    required: false
+    default: "grok/"
+  track_progress:
+    description: "Force a tracking comment on pull_request and issues events."
+    required: false
+    default: "false"
+  use_sticky_comment:
+    description: "Reuse a single tracking comment instead of posting a new one each run."
+    required: false
+    default: "false"
+  allowed_bots:
+    description: "Comma-separated bot logins allowed to trigger the action, or '*' for all bots. Empty allows no bots."
+    required: false
+    default: ""
+  path_to_grok_executable:
+    description: "Skip CLI install and use this grok binary."
+    required: false
+    default: ""
+  grok_version:
+    description: "Grok Build CLI version to install (X.Y.Z). Ignored when path_to_grok_executable is set."
+    required: false
+    default: "1.0.5"
+  show_full_output:
+    description: "Log full grok streaming-json. May leak secrets into Actions logs. Default false."
+    required: false
+    default: "false"
+  bot_name:
+    description: "git user.name for commits created by the action."
+    required: false
+    default: "github-actions[bot]"
+  bot_id:
+    description: "Numeric GitHub user id used in the noreply commit email."
+    required: false
+    default: "41898282"
+
+outputs:
+  conclusion:
+    description: "success, failure, or skipped"
+    value: ${{ steps.run.outputs.conclusion }}
+  execution_file:
+    description: "Path to the captured grok streaming-json log"
+    value: ${{ steps.run.outputs.execution_file }}
+  branch_name:
+    description: "Branch created or used for this run"
+    value: ${{ steps.run.outputs.branch_name }}
+  session_id:
+    description: "Grok session id from the run (usable with grok_args --resume)"
+    value: ${{ steps.run.outputs.session_id }}
+  structured_output:
+    description: "JSON string from grok --json-schema when present"
+    value: ${{ steps.run.outputs.structured_output }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Bun
+      uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      with:
+        bun-version: 1.3.14
+        no-cache: true
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd "${GITHUB_ACTION_PATH}"
+        bun install --production
+
+    - name: Install Grok Build CLI
+      shell: bash
+      env:
+        PATH_TO_GROK_EXECUTABLE: ${{ inputs.path_to_grok_executable }}
+        GROK_VERSION: ${{ inputs.grok_version }}
+      run: |
+        set -euo pipefail
+        if [ -n "${PATH_TO_GROK_EXECUTABLE}" ]; then
+          echo "Using custom grok executable: ${PATH_TO_GROK_EXECUTABLE}"
+          echo "$(dirname "${PATH_TO_GROK_EXECUTABLE}")" >> "${GITHUB_PATH}"
+          exit 0
+        fi
+        VERSION="${GROK_VERSION:-1.0.5}"
+        echo "Installing Grok Build CLI v${VERSION}..."
+        for attempt in 1 2 3; do
+          if curl -fsSL https://x.ai/cli/install.sh | bash -s -- "${VERSION}"; then
+            break
+          fi
+          if [ "${attempt}" -eq 3 ]; then
+            echo "Failed to install Grok Build CLI after 3 attempts" >&2
+            exit 1
+          fi
+          echo "Install attempt ${attempt} failed, retrying..."
+          sleep 5
+        done
+        echo "${HOME}/.grok/bin" >> "${GITHUB_PATH}"
+        if [ -d "${HOME}/.local/bin" ]; then
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+        fi
+
+    - name: Run Grok Build Action
+      id: run
+      shell: bash
+      run: |
+        mkdir -p "${RUNNER_TEMP}/grok-prompts"
+        bun --no-env-file \
+          --config="${GITHUB_ACTION_PATH}/bunfig.toml" \
+          run "${GITHUB_ACTION_PATH}/src/entrypoints/run.ts"
+      env:
+        PROMPT: ${{ inputs.prompt }}
+        TRIGGER_PHRASE: ${{ inputs.trigger_phrase }}
+        ASSIGNEE_TRIGGER: ${{ inputs.assignee_trigger }}
+        LABEL_TRIGGER: ${{ inputs.label_trigger }}
+        BASE_BRANCH: ${{ inputs.base_branch }}
+        BRANCH_PREFIX: ${{ inputs.branch_prefix }}
+        USE_STICKY_COMMENT: ${{ inputs.use_sticky_comment }}
+        TRACK_PROGRESS: ${{ inputs.track_progress }}
+        ALLOWED_BOTS: ${{ inputs.allowed_bots }}
+        BOT_ID: ${{ inputs.bot_id }}
+        BOT_NAME: ${{ inputs.bot_name }}
+        GROK_ARGS: ${{ inputs.grok_args }}
+        XAI_API_KEY: ${{ inputs.xai_api_key }}
+        GROK_AUTH_JSON: ${{ inputs.grok_auth_json }}
+        OVERRIDE_GITHUB_TOKEN: ${{ inputs.github_token }}
+        DEFAULT_WORKFLOW_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ inputs.github_token != '' && inputs.github_token || github.token }}
+        SHOW_FULL_OUTPUT: ${{ inputs.show_full_output }}
+        PATH_TO_GROK_EXECUTABLE: ${{ inputs.path_to_grok_executable }}
+        GROK_HOME: ${{ runner.temp }}/grok-home
+        INPUT_PROMPT_FILE: ${{ runner.temp }}/grok-prompts/prompt.txt
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
