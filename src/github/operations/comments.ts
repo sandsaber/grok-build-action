@@ -13,7 +13,9 @@ export function jobUrl(context: GitHubContext): string {
 
 export function initialTrackingBody(context: GitHubContext): string {
   return [
-    grokLead("**Grok Build** is working on this…"),
+    grokLead("**Grok**"),
+    "",
+    "_Working on this…_",
     "",
     `[View job](${jobUrl(context)})`,
     "",
@@ -28,17 +30,20 @@ export function finalTrackingBody(opts: {
   compareUrl?: string;
   failed?: boolean;
 }): string {
-  const heading = opts.failed
-    ? grokLead("**Grok Build** failed.")
-    : grokLead("**Grok Build** finished.");
-  const parts = [heading, "", sanitizeContent(opts.text).trim() || "(no output)"];
+  const answer = sanitizeContent(opts.text).trim() || "(no output)";
+  const parts = [grokLead("**Grok**"), "", answer];
+  const footer: string[] = [];
+  if (opts.failed) {
+    footer.push("Grok Build failed");
+  }
   if (opts.branchName) {
-    parts.push("", `Branch: \`${opts.branchName}\``);
+    footer.push(`Branch: \`${opts.branchName}\``);
   }
   if (opts.compareUrl) {
-    parts.push("", `[Open a pull request](${opts.compareUrl})`);
+    footer.push(`[Open a pull request](${opts.compareUrl})`);
   }
-  parts.push("", `[View job](${jobUrl(opts.context)})`, "", TRACKING_MARKER);
+  footer.push(`[View job](${jobUrl(opts.context)})`);
+  parts.push("", "---", footer.join(" · "), "", TRACKING_MARKER);
   return parts.join("\n");
 }
 

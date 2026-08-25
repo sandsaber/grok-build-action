@@ -5,15 +5,15 @@ import {
   TRACKING_MARKER,
   withGrokChrome,
 } from "../src/github/comment-chrome";
-import { initialTrackingBody } from "../src/github/operations/comments";
+import { finalTrackingBody, initialTrackingBody } from "../src/github/operations/comments";
 import { issueCommentContext } from "./helpers";
 
 describe("Grok comment chrome", () => {
   test("lead line includes the icon and title", () => {
-    const line = grokLead("**Grok Build** finished.");
+    const line = grokLead("**Grok**");
     expect(line).toContain(GROK_ICON_URL);
     expect(line).toContain('width="18"');
-    expect(line).toContain("**Grok Build** finished.");
+    expect(line).toContain("**Grok**");
   });
 
   test("wraps a plain update with the icon and tracking marker", () => {
@@ -32,6 +32,22 @@ describe("Grok comment chrome", () => {
   test("initial tracking comment shows the icon", () => {
     const body = initialTrackingBody(issueCommentContext("@grok hi"));
     expect(body).toContain(GROK_ICON_URL);
-    expect(body).toContain("is working on this");
+    expect(body).toContain("**Grok**");
+    expect(body).toContain("Working on this");
+  });
+
+  test("final comment is Grok's reply with the icon, then the answer", () => {
+    const body = finalTrackingBody({
+      context: issueCommentContext("@grok hi"),
+      text: "The nil check belongs in parseConfig.",
+      branchName: "grok/issue-12-test",
+      compareUrl: "https://github.com/acme/demo/compare/main...grok/issue-12-test",
+    });
+    expect(body).toContain(GROK_ICON_URL);
+    expect(body.indexOf("**Grok**")).toBeLessThan(
+      body.indexOf("The nil check belongs in parseConfig."),
+    );
+    expect(body).toContain("The nil check belongs in parseConfig.");
+    expect(body).toContain("grok/issue-12-test");
   });
 });

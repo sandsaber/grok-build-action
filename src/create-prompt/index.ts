@@ -38,7 +38,7 @@ function sharedInstructions(opts: PromptOptions): string {
   }
   if (opts.hasCommentTool) {
     lines.push(
-      "- Use the update_grok_comment tool to keep the tracking comment updated as you work.",
+      "- The tracking comment is your reply to the user. Call update_grok_comment with the answer itself (markdown). Do not mention @grok. The action adds the Grok icon; you can omit it.",
     );
   }
   if (isEntityContext(opts.context) && opts.context.isPR) {
