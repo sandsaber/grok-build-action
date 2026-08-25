@@ -2,7 +2,7 @@ name: "Grok Build Action"
 description: "Run Grok Build on GitHub issues and pull requests. Auto-detects tag mode (@grok) or agent mode (prompt)."
 author: "sandsaber"
 branding:
-  icon: "zap"
+  icon: "star"
   color: "purple"
 
 inputs:

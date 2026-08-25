@@ -3,7 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { Octokit } from "@octokit/rest";
 import { z } from "zod";
 import { GITHUB_API_URL } from "../github/api/config";
-import { sanitizeContent } from "../github/utils/sanitizer";
+import { withGrokChrome } from "../github/comment-chrome";
 
 const REPO_OWNER = process.env.REPO_OWNER;
 const REPO_NAME = process.env.REPO_NAME;
@@ -40,7 +40,7 @@ server.tool(
         owner: REPO_OWNER,
         repo: REPO_NAME,
         comment_id: parseInt(commentIdRaw, 10),
-        body: `${sanitizeContent(body)}\n\n<!-- grok-build-action -->`,
+        body: withGrokChrome(body),
       });
 
       return {

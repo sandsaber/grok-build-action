@@ -1,5 +1,7 @@
 # Grok Build Action
 
+<img src="assets/grok-icon.png" width="64" height="64" alt="Grok Build Action" />
+
 A GitHub Action that runs [Grok Build](https://github.com/xai-org/grok-build) on issues and pull requests.
 
 Mention `@grok` to ask questions or implement changes, or pass a `prompt` for unattended automations (PR review, issue triage, scheduled jobs). Same product shape as [Claude Code Action](https://github.com/anthropics/claude-code-action), for Grok only.

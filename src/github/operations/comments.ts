@@ -1,10 +1,11 @@
 import type { Octokit } from "@octokit/rest";
 import { GITHUB_SERVER_URL } from "../api/config";
+import { grokLead, TRACKING_MARKER } from "../comment-chrome";
 import type { GitHubContext, ParsedGitHubContext } from "../context";
 import { isEntityContext } from "../context";
 import { sanitizeContent } from "../utils/sanitizer";
 
-export const TRACKING_MARKER = "<!-- grok-build-action -->";
+export { TRACKING_MARKER, GROK_ICON_URL, grokLead, withGrokChrome } from "../comment-chrome";
 
 export function jobUrl(context: GitHubContext): string {
   return `${GITHUB_SERVER_URL}/${context.repository.full_name}/actions/runs/${context.runId}`;
@@ -12,7 +13,7 @@ export function jobUrl(context: GitHubContext): string {
 
 export function initialTrackingBody(context: GitHubContext): string {
   return [
-    "**Grok Build** is working on this…",
+    grokLead("**Grok Build** is working on this…"),
     "",
     `[View job](${jobUrl(context)})`,
     "",
@@ -27,7 +28,9 @@ export function finalTrackingBody(opts: {
   compareUrl?: string;
   failed?: boolean;
 }): string {
-  const heading = opts.failed ? "**Grok Build** failed." : "**Grok Build** finished.";
+  const heading = opts.failed
+    ? grokLead("**Grok Build** failed.")
+    : grokLead("**Grok Build** finished.");
   const parts = [heading, "", sanitizeContent(opts.text).trim() || "(no output)"];
   if (opts.branchName) {
     parts.push("", `Branch: \`${opts.branchName}\``);
